@@ -102,9 +102,7 @@
         element.style.opacity = 0
         clearInterval(timeout)
         timeout = null
-        document
-          .body
-          .removeChild(element)
+        document.body.removeChild(element)
         callback()
         settings.onLoadEnd(element, index)
       } else {
@@ -217,15 +215,14 @@
 
   function init (options) {
     settings = assign(settings, options)
-    lazyImgList = []
-      .slice
-      .call(document.querySelectorAll('[data-imgsrc]'))
+    lazyImgList = [].slice.call(document.querySelectorAll('[data-imgsrc]'))
 
     lazyImgList.forEach(function (element, index) {
       var src = dataset(element, 'imgsrc')
       srcList.push(src)
       element.src = settings.defaultImg
     })
+    
     checkImgs()
     window.onscroll = throttle(checkImgs, 200)
   }
