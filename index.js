@@ -3,16 +3,15 @@
     cover: '',
     duration: 300,
     coverColor: 'rgba(0,0,0,.4)',
-    defaultImg: 'data:image/png;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw' +
-      '==',
     onLoadEnd: function (element, index) {},
     onLoadError: function (element, index) {},
-    onLoadStart: function (element, index) {}
+    onLoadStart: function (element, index) {},
+    defaultImg: 'data:image/png;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw=='
   }
 
   var srcList = []
   var lazyImgList = []
-  var _height = window.innerHeight
+  var _height = window.innerHeight || window.screen.availHeight
 
   var hasOwnProperty = Object.prototype.hasOwnProperty
   var _now = Date.now || function () {
@@ -93,6 +92,7 @@
   function getElementTop (element) {
     var actualTop = element.offsetTop
     var current = element.offsetParent
+
     while (current !== null) {
       actualTop += current.offsetTop
       current = current.offsetParent
@@ -120,6 +120,7 @@
     timeout = setInterval(function () {
       if (opacity < 0.05) {
         element.style.opacity = 0
+        element.style.filter = 'alpha(opacity=0)'
         clearInterval(timeout)
         timeout = null
         document.body.removeChild(element)
@@ -128,6 +129,7 @@
       } else {
         opacity = opacity - v
         element.style.opacity = opacity
+        element.style.filter = 'alpha(opacity=' + opacity * 100 + ')'
       }
     }, 5)
   }
@@ -194,24 +196,22 @@
   function setImgs (index, callback) {
     var src = srcList[index]
     var element = lazyImgList[index]
-
     image = new Image()
-    image.src = src
     image.onload = function () {
       callback()
       settings.onLoadStart(element, index)
     }
-
-    image.onerror = function () {
+    image.onerror = function (e) {
       dataset(element, 'complete', true)
       settings.onLoadError(element, index)
     }
+
+    image.src = src
   }
 
   function checkImgs () {
     var _loadElement = null
     var scrollTop = document.documentElement.scrollTop || document.body.scrollTop
-
     for (var i = 0, len = lazyImgList.length; i < len; i++) {
       var element = lazyImgList[i]
       if (!dataset(element, 'complete') && !_loadElement) {
@@ -222,13 +222,12 @@
         }
       }
     }
+
     if (_loadElement != null) {
       setImgs(_loadElement, function () {
         try {
           setMask(lazyImgList[_loadElement], _loadElement, checkImgs)
-        } catch (error) {
-          console.log(error)
-        }
+        } catch (error) {}
       })
     }
   }
@@ -236,8 +235,7 @@
   function init (options) {
     settings = assign(settings, options)
     lazyImgList = toArr(document.querySelectorAll('[data-imgsrc]'))
-
-    lazyImgList.forEach(function (element, index) {
+    lazyImgList.forEach(function (element) {
       var src = dataset(element, 'imgsrc')
       srcList.push(src)
       element.src = settings.defaultImg
