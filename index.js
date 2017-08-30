@@ -215,14 +215,14 @@
 
   function init (options) {
     settings = assign(settings, options)
-    lazyImgList = [].slice.call(document.querySelectorAll('[data-imgsrc]'))
+    lazyImgList = [].concat.apply([], document.querySelectorAll('[data-imgsrc]'))
 
     lazyImgList.forEach(function (element, index) {
       var src = dataset(element, 'imgsrc')
       srcList.push(src)
       element.src = settings.defaultImg
     })
-    
+
     checkImgs()
     window.onscroll = throttle(checkImgs, 200)
   }
