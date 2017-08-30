@@ -3,7 +3,8 @@
     cover: '',
     duration: 300,
     coverColor: 'rgba(0,0,0,.4)',
-    defaultImg: 'data:image/png;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==',
+    defaultImg: 'data:image/png;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw' +
+      '==',
     onLoadEnd: function (element, index) {},
     onLoadError: function (element, index) {},
     onLoadStart: function (element, index) {}
@@ -20,7 +21,8 @@
 
   if (!Array.prototype.forEach) {
     Array.prototype.forEach = function (callback) {
-      var T, k
+      var T,
+        k
       if (this == null) {
         throw new TypeError('this is null or not defined')
       }
@@ -44,6 +46,20 @@
     }
   }
 
+  function toArr (arr) {
+    var output = []
+    try {
+      output = []
+        .slice
+        .call(arr)
+    } catch(e) {
+      for (var key in arr) {
+        output.push(arr[key])
+      }
+    }
+    return output
+  }
+
   function assign (target) {
     for (var i = 1; i < arguments.length; i++) {
       var source = arguments[i]
@@ -64,9 +80,13 @@
     }
 
     if (value === undefined) {
-      return hasDataset ? element.dataset[attr] : element.getAttribute('data-' + attr)
+      return hasDataset
+        ? element.dataset[attr]
+        : element.getAttribute('data-' + attr)
     } else {
-      hasDataset ? element.dataset[attr] = value + '' : element.setAttribute('data-' + attr, value + '')
+      hasDataset
+        ? element.dataset[attr] = value + ''
+        : element.setAttribute('data-' + attr, value + '')
     }
   }
 
@@ -96,13 +116,16 @@
     var timeout = null
     var opacity = parseFloat(element.style.opacity, 10)
     var v = 1 / settings.duration * 5
-    if (isNaN(opacity))opacity = 1
+    if (isNaN(opacity))
+      opacity = 1
     timeout = setInterval(function () {
       if (opacity < 0.05) {
         element.style.opacity = 0
         clearInterval(timeout)
         timeout = null
-        document.body.removeChild(element)
+        document
+          .body
+          .removeChild(element)
         callback()
         settings.onLoadEnd(element, index)
       } else {
@@ -150,7 +173,8 @@
   }
 
   function setMask (element, index, callback) {
-    if (dataset(element, 'complete')) return
+    if (dataset(element, 'complete'))
+      return
 
     element.style.visibility = 'hidden'
     element.src = srcList[index]
@@ -164,8 +188,11 @@
     var mask = document.createElement('div')
     mask.className = 'lazy-load-mask'
     mask.style.cssText = 'background-color:' + settings.coverColor + ';position:absolute;width:' + w + 'px;height:' + h + 'px;top:' + offsetTop + 'px;left:' + offsetLeft + 'px;z-index:20;'
-    if (settings.cover) mask.innerHTML = settings.cover
-    document.body.appendChild(mask)
+    if (settings.cover)
+      mask.innerHTML = settings.cover
+    document
+      .body
+      .appendChild(mask)
 
     fadeOut(mask, callback, index)
     dataset(element, 'complete', true)
@@ -194,7 +221,7 @@
 
     for (var i = 0, len = lazyImgList.length; i < len; i++) {
       var element = lazyImgList[i]
-      if (! dataset(element, 'complete') && !_loadElement) {
+      if (!dataset(element, 'complete') && !_loadElement) {
         var offsetTop = getElementTop(element)
         if (offsetTop - scrollTop >= 0 && offsetTop - scrollTop < _height) {
           _loadElement = i
@@ -215,16 +242,14 @@
 
   function init (options) {
     settings = assign(settings, options)
-    lazyImgList = document.querySelectorAll('[data-imgsrc]')
-    try {
-      lazyImgList = [].slice.call(lazyImgList)
-    } catch(e) {}
+    lazyImgList = toArr(document.querySelectorAll('[data-imgsrc]'))
 
-    lazyImgList.forEach(function (element, index) {
-      var src = dataset(element, 'imgsrc')
-      srcList.push(src)
-      element.src = settings.defaultImg
-    })
+    lazyImgList
+      .forEach(function (element, index) {
+        var src = dataset(element, 'imgsrc')
+        srcList.push(src)
+        element.src = settings.defaultImg
+      })
 
     checkImgs()
     window.onscroll = throttle(checkImgs, 200)
