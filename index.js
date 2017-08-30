@@ -79,10 +79,12 @@
 
     if (value === undefined) {
       return hasDataset ? element.dataset[attr] : element.getAttribute('data-' + attr)
-    } else if (hasDataset) {
-      element.dataset[attr] = value + ''
     } else {
-      element.setAttribute('data-' + attr, value + '')
+      if (hasDataset) {
+        element.dataset[attr] = value + ''
+      } else {
+        element.setAttribute('data-' + attr, value + '')
+      }
     }
   }
 
