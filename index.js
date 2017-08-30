@@ -51,8 +51,8 @@
     try {
       output = [].slice.call(arr)
     } catch(e) {
-      for (var key in arr) {
-        output.push(arr[key])
+      for ( var i = 0,len = arr.length; i < len;i++) {
+        output.push(arr[i])
       }
     }
     return output
