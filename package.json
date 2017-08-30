@@ -1,0 +1,23 @@
+{
+  "name": "lazyload.js",
+  "version": "1.0.0",
+  "description": "img lazyload",
+  "main": "index.js",
+  "scripts": {
+    "build": "uglifyjs index.js -c -m --ie8 -o lazyload.min.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/EleanorMao/lazyload.js.git"
+  },
+  "keywords": [
+    "lazyload"
+  ],
+  "author": "EleanorMao",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/EleanorMao/lazyload.js/issues"
+  },
+  "homepage": "https://github.com/EleanorMao/lazyload.js#readme"
+}
