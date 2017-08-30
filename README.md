@@ -2,10 +2,10 @@
 lazy load imgs
 
 # support
-√ ie8 ~ ie11
-√ edge
-√ firefox4+
-√ chrome26+
+* √ ie8 ~ ie11
+* √ edge
+* √ firefox4+
+* √ chrome26+
 
 # usage
 ```html
