@@ -1,5 +1,5 @@
 # lazyload.js
-lazy load imgs
+lazy load imgs [demo](http://eleanormao.github.io/lazyload.js/)
 
 # support
 * √ ie8 ~ ie11
