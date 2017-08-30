@@ -1,192 +1,234 @@
-;
-(function (root) {
-    var settings = {
-        cover: "",
-        showTime: 300,
-        coverColor: "rgba(0,0,0,.2)",
-        defaultImg: "data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw" +
-                "==",
-        onLoadError: function (index, element) {},
-        onLoadStart: function (index, element) {}
-    };
+;(function (root) {
+  var settings = {
+    cover: '',
+    duration: 300,
+    coverColor: 'rgba(0,0,0,.4)',
+    defaultImg: 'data:image/png;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==',
+    onLoadEnd: function (element, index) {},
+    onLoadError: function (element, index) {},
+    onLoadStart: function (element, index) {}
+  }
 
-    var srcList = [];
-    var lazyImgList = [];
-    var _width = window.innerWidth;
-    var _height = window.innerHeight;
+  var srcList = []
+  var lazyImgList = []
+  var _height = window.innerHeight
 
-    var _now = Date.now || function () {
-        return new Date().getTime();
-    };
-    function extend(target) {
-        for (let i = 1; i < arguments.length; i++) {
-            let source = arguments[i];
-            for (let key in source) {
-                if (Object.prototype.hasOwnProperty.call(source, key)) {
-                    target[key] = source[key];
-                }
-            }
+  var hasOwnProperty = Object.prototype.hasOwnProperty
+  var _now = Date.now || function () {
+    return new Date().getTime()
+  }
+
+  if (!Array.prototype.forEach) {
+    Array.prototype.forEach = function (callback) {
+      var T, k
+      if (this == null) {
+        throw new TypeError('this is null or not defined')
+      }
+      var O = Object(this)
+      var len = O.length >>> 0
+      if (typeof callback !== 'function') {
+        throw new TypeError(callback + ' is not a function')
+      }
+      if (arguments.length > 1) {
+        T = arguments[1]
+      }
+      k = 0
+      while (k < len) {
+        var kValue
+        if (k in O) {
+          kValue = O[k]
+          callback.call(T, kValue, k, O)
         }
-        return target;
-    };
+        k++
+      }
+    }
+  }
 
-    function getElementTop(element) {
-        var actualTop = element.offsetTop;
-        var current = element.offsetParent;
-        while (current !== null) {
-            actualTop += current.offsetTop;
-            current = current.offsetParent;
+  function assign (target) {
+    for (let i = 1; i < arguments.length; i++) {
+      let source = arguments[i]
+      for (let key in source) {
+        if (hasOwnProperty.call(source, key)) {
+          target[key] = source[key]
         }
-        return actualTop;
+      }
+    }
+    return target
+  }
+
+  function dataset (element, attr, value) {
+    var hasDataset = dataset.hasDataset
+    if (hasDataset == undefined) {
+      hasDataset = !!element.dataset
+      dataset.hasDataset = hasDataset
     }
 
-    function getElementLeft(element) {
-        var actualLeft = element.offsetLeft;
-        var current = element.offsetParent;
+    if (value === undefined) {
+      return hasDataset ? element.dataset[attr] : element.getAttribute('data-' + attr)
+    } else {
+      hasDataset ? element.dataset[attr] = value + '' : element.setAttribute('data-' + attr, value + '')
+    }
+  }
 
-        while (current !== null) {
-            actualLeft += current.offsetLeft;
-            current = current.offsetParent;
-        }
+  function getElementTop (element) {
+    var actualTop = element.offsetTop
+    var current = element.offsetParent
+    while (current !== null) {
+      actualTop += current.offsetTop
+      current = current.offsetParent
+    }
+    return actualTop
+  }
 
-        return actualLeft;
+  function getElementLeft (element) {
+    var actualLeft = element.offsetLeft
+    var current = element.offsetParent
+
+    while (current !== null) {
+      actualLeft += current.offsetLeft
+      current = current.offsetParent
     }
 
-    function throttle(func, wait, options) {
-        var context,
-            args,
-            result;
-        var timeout = null;
-        var previous = 0;
+    return actualLeft
+  }
 
-        var later = function () {
-            previous = _now();
-            timeout = null;
-            result = func.apply(context, args);
-            if (!timeout) {
-                context = args = null;
-            }
-        };
-        return function () {
-            var now = _now();
-
-            var remaining = wait - (now - previous);
-            context = this;
-            args = arguments;
-            if (remaining <= 0 || remaining > wait) {
-                clearTimeout(timeout);
-                timeout = null;
-                previous = now; //上一次执行时间
-                result = func.apply(context, args);
-                if (!timeout) {
-                    context = args = null;
-                }
-            } else if (!timeout) {
-                timeout = setTimeout(later, remaining);
-            }
-            return result;
-        };
-    };
-
-    function removeMak(index, mask, callback, element) {
-        setTimeout(function () {
-            document
-                .body
-                .removeChild(mask);
-            callback();
-        }, settings.showTime);
-    }
-
-    function setMask(element, index, callback) {
-        if (element.dataset.complete) 
-            return;
-        
-        element.style.visibility = "hidden";
-        element.src = srcList[index];
-
-        var w = element.width;
-        var h = element.height;
-        var offsetTop = getElementTop(element);
-        var offsetLeft = getElementLeft(element);
-
-        element.style.visibility = "visible";
-        var mask = document.createElement("div");
-        mask.className = "lazy-load-mask";
-        mask.style.cssText = "background-color:" + settings.coverColor + ";position:absolute;width:" + w + "px;height:" + h + "px;top:" + offsetTop + "px;left:" + offsetLeft + "px;z-index:500";
-        mask.innerHTML = settings.cover;
+  function fadeOut (element, callback, index) {
+    var timeout = null
+    var opacity = parseFloat(element.style.opacity, 10)
+    var v = 1 / settings.duration * 5
+    if (isNaN(opacity))opacity = 1
+    timeout = setInterval(function () {
+      if (opacity < 0.05) {
+        element.style.opacity = 0
+        clearInterval(timeout)
+        timeout = null
         document
-            .body
-            .appendChild(mask);
+          .body
+          .removeChild(element)
+        callback()
+        settings.onLoadEnd(element, index)
+      } else {
+        opacity = opacity - v
+        element.style.opacity = opacity
+      }
+    }, 5)
+  }
 
-        removeMak(index, mask, callback, element);
-        element.dataset.complete = "true";
+  function throttle (func, wait, options) {
+    var context,
+      args,
+      result
+    var timeout = null
+    var previous = 0
 
+    var later = function () {
+      previous = _now()
+      timeout = null
+      result = func.apply(context, args)
+      if (!timeout) {
+        context = args = null
+      }
     }
 
-    function setImgs(index, callback) {
-        var src = srcList[index];
-        var element = lazyImgList[index];
+    return function () {
+      var now = _now()
 
-        image = new Image()
-        image.src = src;
-        image.onload = function () {
-            callback();
-            settings.onLoadStart(index, element);
+      var remaining = wait - (now - previous)
+      context = this
+      args = arguments
+      if (remaining <= 0 || remaining > wait) {
+        clearTimeout(timeout)
+        timeout = null
+        previous = now
+        result = func.apply(context, args)
+        if (!timeout) {
+          context = args = null
         }
+      } else if (!timeout) {
+        timeout = setTimeout(later, remaining)
+      }
+      return result
+    }
+  }
 
-        image.onerror = function () {
-            element.dataset.complete = "true";
-            settings.onLoadError(index, element);
+  function setMask (element, index, callback) {
+    if (dataset(element, 'complete')) return
+
+    element.style.visibility = 'hidden'
+    element.src = srcList[index]
+
+    var w = element.width
+    var h = element.height
+    var offsetTop = getElementTop(element)
+    var offsetLeft = getElementLeft(element)
+
+    element.style.visibility = 'visible'
+    var mask = document.createElement('div')
+    mask.className = 'lazy-load-mask'
+    mask.style.cssText = 'background-color:' + settings.coverColor + ';position:absolute;width:' + w + 'px;height:' + h + 'px;top:' + offsetTop + 'px;left:' + offsetLeft + 'px;z-index:20;'
+    if (settings.cover) mask.innerHTML = settings.cover
+    document.body.appendChild(mask)
+
+    fadeOut(mask, callback, index)
+    dataset(element, 'complete', true)
+  }
+
+  function setImgs (index, callback) {
+    var src = srcList[index]
+    var element = lazyImgList[index]
+
+    image = new Image()
+    image.src = src
+    image.onload = function () {
+      callback()
+      settings.onLoadStart(element, index)
+    }
+
+    image.onerror = function () {
+      dataset(element, 'complete', true)
+      settings.onLoadError(element, index)
+    }
+  }
+
+  function checkImgs () {
+    var _loadElement = null
+    var scrollTop = document.documentElement.scrollTop || document.body.scrollTop
+
+    for (var i = 0, len = lazyImgList.length; i < len; i++) {
+      var element = lazyImgList[i]
+      if (! dataset(element, 'complete') && !_loadElement) {
+        var offsetTop = getElementTop(element)
+        if (offsetTop - scrollTop >= 0 && offsetTop - scrollTop < _height) {
+          _loadElement = i
+          break
         }
+      }
     }
-
-    function checkImgs() {
-        var _loadElement = null;
-        var scrollTop = document.documentElement.scrollTop || window.pageYOffset || document.body.scrollTop;
-
-        for (var i = 0, len = lazyImgList.length; i < len; i++) {
-            var element = lazyImgList[i];
-            if (!element.dataset.complete && !_loadElement) {
-                var offsetTop = getElementTop(element);
-                if (offsetTop - scrollTop >= 0 && offsetTop - scrollTop < _height) {
-                    _loadElement = i;
-                    break;
-                }
-            }
+    if (_loadElement != null) {
+      setImgs(_loadElement, function () {
+        try {
+          setMask(lazyImgList[_loadElement], _loadElement, checkImgs)
+        } catch (error) {
+          console.log(error)
         }
-        if (_loadElement != null) {
-            setImgs(_loadElement, function () {
-                try {
-                    setMask(lazyImgList[_loadElement], _loadElement, checkImgs)
-                } catch (error) {
-                    console.log(error)
-                }
-            })
-        }
+      })
     }
+  }
 
-    function init(options) {
-        settings = extend(settings, options);
-        lazyImgList = []
-            .slice
-            .call(document.querySelectorAll("[data-img-src]"));
+  function init (options) {
+    settings = assign(settings, options)
+    lazyImgList = []
+      .slice
+      .call(document.querySelectorAll('[data-imgsrc]'))
 
-        lazyImgList.forEach(function (element, index) {
-            var src = element.dataset.imgSrc;
-            srcList.push(src);
-            element.src = settings.defaultImg;
-        })
+    lazyImgList.forEach(function (element, index) {
+      var src = dataset(element, 'imgsrc')
+      srcList.push(src)
+      element.src = settings.defaultImg
+    })
+    checkImgs()
+    window.onscroll = throttle(checkImgs, 200)
+  }
 
-        checkImgs();
-        window.onscroll = throttle(checkImgs, 200);
-    }
-
-    function reset() {
-        lazyImgList = []
-            .slice
-            .call(document.querySelectorAll("[data-img-src]"));
-    }
-
-    root.lazyload = init;
-    root.lazyReset = reset;
+  root.lazyload = init
 })(this)
