@@ -215,7 +215,10 @@
 
   function init (options) {
     settings = assign(settings, options)
-    lazyImgList = [].concat.apply([], document.querySelectorAll('[data-imgsrc]'))
+    lazyImgList = document.querySelectorAll('[data-imgsrc]')
+    try {
+      lazyImgList = [].slice.call(lazyImgList)
+    } catch(e) {}
 
     lazyImgList.forEach(function (element, index) {
       var src = dataset(element, 'imgsrc')
