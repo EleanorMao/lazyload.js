@@ -45,9 +45,9 @@
   }
 
   function assign (target) {
-    for (let i = 1; i < arguments.length; i++) {
-      let source = arguments[i]
-      for (let key in source) {
+    for (var i = 1; i < arguments.length; i++) {
+      var source = arguments[i]
+      for (var key in source) {
         if (hasOwnProperty.call(source, key)) {
           target[key] = source[key]
         }
