@@ -232,17 +232,21 @@
     }
   }
 
+  var _scroll = throttle(checkImgs, 200)
+
   function init (options) {
     settings = assign(settings, options)
     lazyImgList = toArr(document.querySelectorAll('[data-imgsrc]'))
     lazyImgList.forEach(function (element) {
       var src = dataset(element, 'imgsrc')
       srcList.push(src)
-      element.src = settings.defaultImg
+      if (!dataset(element, 'complete')) element.src = settings.defaultImg
     })
 
     checkImgs()
-    window.onscroll = throttle(checkImgs, 200)
+    if (window.onscroll !== _scroll) {
+      window.onscroll = _scroll
+    }
   }
 
   root.lazyload = init
